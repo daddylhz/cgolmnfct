@@ -1,26 +1,79 @@
 package cgolmnfct
 
+/*
+#cgo CFLAGS: -I./include
+#cgo LDFLAGS: -lnetfilter_conntrack -lnfnetlink
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/time.h>
+#include <time.h>
+#include <string.h>
+#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
+#include <libnfnetlink/libnfnetlink.h>
+
+void goCallbackFunc(int msg, void *ct, void *data);
+
+int eventcb(enum nf_conntrack_msg_type type,
+		    struct nf_conntrack *ct,
+		    void *data)
+{
+	goCallbackFunc((int)(type), (void*)(ct), data);
+	return NFCT_CB_CONTINUE;
+}
+int registercallback(struct nfct_handle *h, void *data)
+{
+	return nfct_callback_register(h, NFCT_T_ALL, eventcb, data);
+}
+unsigned int setbuffersize(struct nfct_handle *h)
+{
+	return nfnl_rcvbufsiz(nfct_nfnlh(h), 429490000/2);
+}
+*/
+import "C"
+
 import (
+	_ "fmt"
 	mnl "github.com/chamaken/cgolmnl"
+	_ "github.com/mattn/go-pointer"
 	"reflect"
 	"syscall"
 	"unsafe"
 )
-
-/*
-#cgo CFLAGS: -I./include
-#cgo LDFLAGS: -lnetfilter_conntrack
-#include <stdlib.h>
-#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
-*/
-import "C"
 
 type Conntrack C.struct_nf_conntrack
 type Bitmask C.struct_nfct_bitmask
 type Labelmap C.struct_nfct_labelmap
 type Filter C.struct_nfct_filter
 
-// all represented [0]byte
+// struct nf_conntrack *nfct_open(uint8_t)
+func conntrackOpen(msg ConntrackMsgType) (*NfctHandle, error) {
+	ret, err := C.nfct_open(CONNTRACK, C.uint(msg)) //New:0x00000001 Update:0x00000002 Destory:0x00000004
+	return (*NfctHandle)(ret), err
+}
+
+func registerCallback(nfcthandle *NfctHandle, fnptr unsafe.Pointer) (int, error) {
+	ret, err := C.registercallback((*C.struct_nfct_handle)(nfcthandle), fnptr)
+	return int(ret), err
+}
+
+func catch(nfcthandle *NfctHandle) (int, error) {
+	ret, err := C.nfct_catch((*C.struct_nfct_handle)(nfcthandle))
+	return int(ret), err
+}
+
+func nfctFd(nfcthandle *NfctHandle) (int, error) {
+	ret, err := C.nfct_fd((*C.struct_nfct_handle)(nfcthandle))
+	return int(ret), err
+}
+
+func setBufferSize(nfcthandle *NfctHandle) (uint32, error) {
+	ret, err := C.setbuffersize((*C.struct_nfct_handle)(nfcthandle))
+	return uint32(ret), err
+}
+
+func nfctClose(nfcthandle *NfctHandle) {
+	C.nfct_close((*C.struct_nfct_handle)(nfcthandle))
+}
 
 // struct nf_conntrack *nfct_new(void)
 func conntrackNew() (*Conntrack, error) {
@@ -373,9 +426,9 @@ func filterSetLogic(filter *Filter, attr FilterAttr, logic FilterLogic) error {
 }
 
 // int nfct_filter_attach(int fd, struct nfct_filter *filter);
-func filterAttach(fd int, filter *Filter) error {
-	_, err := C.nfct_filter_attach(C.int(fd), (*C.struct_nfct_filter)(filter))
-	return err
+func filterAttach(fd int, filter *Filter) (int, error) {
+	ret, err := C.nfct_filter_attach(C.int(fd), (*C.struct_nfct_filter)(filter))
+	return int(ret), err
 }
 
 // int nfct_filter_detach(int fd);

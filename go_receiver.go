@@ -62,6 +62,29 @@ import (
 //
 // In case of success, this function returns a valid pointer to a memory blob,
 // otherwise nil and error are returned.
+func ConntrackOpen(msg ConntrackMsgType) (*NfctHandle, error) {
+	return conntrackOpen(msg)
+}
+
+func Register(nfcthandle *NfctHandle, fn unsafe.Pointer) (int, error) {
+	return registerCallback(nfcthandle, fn)
+}
+
+func Catch(nfcthandle *NfctHandle) (int, error) {
+	return catch(nfcthandle)
+}
+
+func NfctFd(nfcthandle *NfctHandle) (int, error) {
+	return nfctFd(nfcthandle)
+}
+
+func (nfcthandle *NfctHandle) ConntrackClose() {
+	nfctClose(nfcthandle)
+}
+
+func (nfcthandle *NfctHandle) SetBufferSize() (uint32, error) {
+	return setBufferSize(nfcthandle)
+}
 func NewConntrack() (*Conntrack, error) {
 	return conntrackNew()
 }
@@ -419,7 +442,7 @@ func (filter *Filter) SetLogic(attr FilterAttr, logic FilterLogic) error {
 //
 // If the function returns EINVAL probably you have found a bug in it.
 // Please, report this.
-func (filter *Filter) Attach(fd int) error {
+func (filter *Filter) Attach(fd int) (int, error) {
 	return filterAttach(fd, filter)
 }
 

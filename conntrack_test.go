@@ -725,7 +725,7 @@ var _ = Describe("Cpylmnfct Conntrack", func() {
 			ct.SetAttrU32(nfct.ATTR_ORIG_IPV4_DST, 0xfcfdfeff)
 			ct.SetAttrU16(nfct.ATTR_ORIG_L4PROTO, 17)
 			ct.SetAttrU16(nfct.ATTR_ORIG_PORT_SRC, 0x8ff8)
-			ct.SetAttrU16(nfct.ATTR_ORIG_PORT_DST, 0x3500);
+			ct.SetAttrU16(nfct.ATTR_ORIG_PORT_DST, 0x3500)
 			ct.SetAttrU8(nfct.ATTR_REPL_L3PROTO, 2)
 			ct.SetAttrU32(nfct.ATTR_REPL_IPV4_SRC, 0xfcfdfeff)
 			ct.SetAttrU32(nfct.ATTR_REPL_IPV4_DST, 0x4030201)

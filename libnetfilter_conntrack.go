@@ -13,6 +13,8 @@ const (
 
 const NFCT_ALL_CT_GROUPS = C.NFCT_ALL_CT_GROUPS
 
+type NfctHandle C.struct_nfct_handle
+
 // conntrack attributes
 type ConntrackAttr C.enum_nf_conntrack_attr
 
